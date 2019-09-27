@@ -18,10 +18,10 @@ def main():
     parser.add_argument('--debug', default=False)
     parser.add_argument('--training', default=True)
 
-    parser.add_argument('--save_dir', default="../Master_Thesis_datasets/save_data")
-    parser.add_argument('--model_dir', default="../Master_Thesis_datasets/summary/model")
-    parser.add_argument('--numpy_dir', default="../Master_Thesis_datasets/save_data/Tensor_numpy")
-    parser.add_argument('--tensorboard_dir', default='../Master_Thesis_datasets/summary')
+    parser.add_argument('--save_dir', default="../data_resources/save_data")
+    parser.add_argument('--model_dir', default="../data_resources/summary/model")
+    parser.add_argument('--numpy_dir', default="../data_resources/save_data/Tensor_numpy")
+    parser.add_argument('--tensorboard_dir', default='../data_resources/summary')
 
     parser.add_argument('--number_files', default=10, help="For dataLoader, the number of files read once")
 

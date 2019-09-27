@@ -29,7 +29,7 @@ class dataLoader:
     # @file_number: int.    The number of .json to be generated in total.
     # @ data_dir: the resources files in local data file.
     # @ save_dir: save dir in local save_data dir.
-    def __init__(self, data_dir='../Master_Thesis_datasets/data', save_dir='../Master_Thesis_datasets/save_data', test=True, random_number_files=1, file_number=3):
+    def __init__(self, data_dir='../data_resources/data', save_dir='../data_resources/save_data', test=True, random_number_files=1, file_number=3):
         self.save_vocab2id_dir = save_dir + '/' + 'vocab2id'
         self.save_id2vocab_dir = save_dir + '/' + 'id2word'
         self.save_tensor_dir = save_dir + '/' + 'Tensor_numpy'
