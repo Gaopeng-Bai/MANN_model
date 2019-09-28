@@ -12,7 +12,6 @@ Meta learning for MANN.
     # @file_number: int.    The number of .json to be generated in total.
     # @ data_dir: the resources files in local data file.
     # @ save_dir: save dir in local save_data dir.
-* 
 # Training
 ```
 * Setting the parameters in Train.py,batch size etc.Then run python Train.py.
