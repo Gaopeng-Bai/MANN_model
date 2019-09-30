@@ -1,3 +1,14 @@
+#!/usr/bin/python3
+# -*-coding:utf-8 -*-
+
+# Create Mann model for Meta-learning based on LSTM model as controller.
+# @Time    : 6/28/2019 3:40 PM
+# @Author  : Gaopeng.Bai
+# @File    : model.py
+# @User    : baigaopeng
+# @Software: PyCharm
+# Reference:**********************************************
+
 import tensorflow as tf
 
 

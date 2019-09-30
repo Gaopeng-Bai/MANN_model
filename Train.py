@@ -1,3 +1,14 @@
+#!/usr/bin/python3
+# -*-coding:utf-8 -*-
+
+# Reference:https://github.com/snowkylin/ntm.git
+# @Time    : 6/28/2019 3:40 PM
+# @Author  : Gaopeng.Bai
+# @File    : Train.py
+# @User    : baigaopeng
+# @Software: PyCharm
+# Reference:**********************************************
+
 import argparse
 import os
 from module.model import NTMOneShotLearningModel

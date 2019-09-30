@@ -2,10 +2,13 @@
   <dictionary name="baigaopeng">
     <words>
       <w>avaiable</w>
+      <w>baigaopeng</w>
+      <w>dataset</w>
       <w>datasets</w>
       <w>detials</w>
       <w>epoches</w>
       <w>fsize</w>
+      <w>gaopeng</w>
       <w>lstm</w>
       <w>mainwindow</w>
       <w>ofiles</w>
@@ -13,6 +16,7 @@
       <w>pred</w>
       <w>preprocessing</w>
       <w>pythonpath</w>
+      <w>recommender</w>
       <w>reconver</w>
       <w>resorces</w>
       <w>spotify</w>
