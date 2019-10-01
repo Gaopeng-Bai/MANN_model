@@ -104,6 +104,7 @@ class preprocessing:
         Create a batch from batch table with batch size and tasks size represent a playlist.
         a batch(1-dim) represent a playlist rebuild no.(task size(2-dim)) of item.
         each item extend the length of seq length(3-dim).
+        add second data that shift y label one bit to left.
         Args:
             test_data: fetch next test batch when True,
                        fetch next train batch when False.
@@ -122,6 +123,7 @@ class preprocessing:
                 # random choice tasks size item.
                 y_out.append([y_test[i] for i in seq])
                 x_out.append([x_test[i] for i in seq])
+                x_labels = y_out[-1:] + y_out[:-1]
         else:
             for i in range(self.batch_size):
                 x, y = self.fetch_batch(test_data)
@@ -134,7 +136,9 @@ class preprocessing:
                 y_out.append([y[i] for i in seq])
                 x_out.append([x[i] for i in seq])
 
-        return x_out, y_out
+                x_labels = y_out[-1:]+y_out[:-1]
+
+        return x_out, x_labels, y_out
 
     def next_batch(self, test_data=False):
         """
@@ -166,14 +170,12 @@ class preprocessing:
 
     def assign_to_final(self, test_data):
         """
-        add second data that shift y label one bit to left.
         Args:
             test_data: fetch next test batch when True,
                        fetch next train batch when False.
         Returns: a batch datasets.
         """
-        x, y = self.create_batch(test_data)
-        y_shifted = y[:, -1:, :] + y[:, :-1, :]
+        x, y_shifted, y = self.create_batch(test_data)
         return np.array(x), np.array(y_shifted), np.array(y)
 
     def fetch_batch(self, test_data=False):

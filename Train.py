@@ -92,13 +92,13 @@ def train(args):
         number_test = 0
         for e in range(args.num_epoches):
             data_loader.init_preprocessing()
-            x, y = data_loader.next_batch(test_data=False)
+            x, x_label, y = data_loader.next_batch(test_data=False)
             while x is not None:
                 number_test += 1
                 # test
                 if number_test % 10 == 0:
-                    x, y = data_loader.next_batch(test_data=True)
-                    feed_dict = {model.x_data: x, model.x_label: data_loader.x_label, model.y: y}
+                    x, x_label, y = data_loader.next_batch(test_data=True)
+                    feed_dict = {model.x_data: x, model.x_label: x_label, model.y: y}
                     learning_loss, accuracy, recall, precision = sess.run(
                         [model.learning_loss, model.accuracy, model.recall, model.precision], feed_dict=feed_dict)
 
@@ -115,12 +115,11 @@ def train(args):
                     # print("acc_op:{}, recall_op :{}".format(acc_op,recall_op))
                 else:
                     # Train
-                    feed_dict = {model.x_data: x, model.x_label: data_loader.x_label, model.y: y}
+                    feed_dict = {model.x_data: x, model.x_label: x_label, model.y: y}
                     _, merged = sess.run([model.train_op, model.merged_summary_op], feed_dict=feed_dict)
-                    data_loader.x_label = y
                     train_writer.add_summary(merged, number_test)
 
-                x, y = data_loader.next_batch(test_data=False)
+                x, x_label, y = data_loader.next_batch(test_data=False)
 
             # save model
             if e % 100 == 0:
