@@ -23,7 +23,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', default="train")
 
-    parser.add_argument('--model', default="MANN", help='LSTM, MANN, MANN_NEW or NTM')
+    parser.add_argument('--model', default="MANN", help='LSTM, MANN, MANN2 or NTM')
 
     parser.add_argument('--restore_training', default=False)
     parser.add_argument('--debug', default=False)
@@ -48,9 +48,9 @@ def main():
     parser.add_argument('--output_keep_prob', default=1.0,
                         help='probability of keeping weights in the hidden layer')
 
-    parser.add_argument('--memory_size', default=256)
+    parser.add_argument('--memory_size', default=512)
     parser.add_argument('--read_head_num', default=4)
-    parser.add_argument('--memory_vector_dim', default=450)
+    parser.add_argument('--memory_vector_dim', default=4500)
 
     parser.add_argument('--shift_range', default=1, help='Only for model=NTM')
     parser.add_argument('--write_head_num', default=1, help='Only for model=NTM. For MANN #(write_head) = #(read_head)')
@@ -99,8 +99,8 @@ def train(args):
                 if number_test % 10 == 0:
                     x, x_label, y = data_loader.next_batch(test_data=True)
                     feed_dict = {model.x_data: x, model.x_label: x_label, model.y: y}
-                    learning_loss, accuracy, recall, precision = sess.run(
-                        [model.learning_loss, model.accuracy, model.recall, model.precision], feed_dict=feed_dict)
+                    learning_loss, accuracy, recall, precision, _ = sess.run(
+                        [model.learning_loss, model.accuracy, model.recall, model.precision, model.train_op], feed_dict=feed_dict)
 
                     acc_op, recall_op, pre_op, merged_summary = sess.run(
                         [model.acc_op, model.rec_op, model.pre_op, model.merged_summary_op], feed_dict=feed_dict)
@@ -108,11 +108,10 @@ def train(args):
                     test_writer.add_summary(merged_summary, number_test)
 
                     print(
-                        "Epochs {}/{}, Files {}/{}, learning_loss:{}, Accuracy :{}, Recall:{}, "
+                        "Epochs {}/{}, Files {}, learning_loss:{}, Accuracy :{}, Recall:{}, "
                         "precision:{} "
-                            .format(e, args.num_epoches, len(data_loader.files), number_test, learning_loss,
+                            .format(e, args.num_epoches, len(data_loader.files), learning_loss,
                                     '%.2f%%' % (accuracy * 100), recall, precision))
-                    # print("acc_op:{}, recall_op :{}".format(acc_op,recall_op))
                 else:
                     # Train
                     feed_dict = {model.x_data: x, model.x_label: x_label, model.y: y}
@@ -128,15 +127,19 @@ def train(args):
 
 
 def predict(args, x):
-    # init = (tf.global_variables_initializer(), tf.local_variables_initializer())
     with tf.Session() as sess:
         meta = [fn for fn in os.listdir(args.save_dir + '/' + args.model) if fn.endswith('meta')]
         saver = tf.train.import_meta_graph(args.save_dir + '/' + args.model + meta[0])
         saver.restore(sess, tf.train.latest_checkpoint(args.save_dir + '/' + args.model))
-        prediction = tf.get_collection('pred_network')[0]
         graph = tf.get_default_graph()
-
+        # input of model
         input_x = graph.get_operation_by_name('x_squences').outputs[0]
+        input_x_label = graph.get_operation_by_name('x_label').outputs[0]
+        # prediction
+        prediction = graph.get_operation_by_name('output').outputs[0]
+        # for retraining
+        train_y = graph.get_operation_by_name('y').outputs[0]
+        train_op = graph.get_operation_by_name('train_op').outputs[0]
 
         sp_predict = sess.run(prediction, feed_dict={input_x: x})
 

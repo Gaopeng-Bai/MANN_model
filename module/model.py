@@ -16,11 +16,11 @@ class NTMOneShotLearningModel:
     def __init__(self, args):
 
         self.x_data = tf.placeholder(dtype=tf.float32,
-                                     shape=[args.batch_size, args.tasks_size, args.seq_length])
+                                     shape=[args.batch_size, args.tasks_size, args.seq_length], name="x_squences")
         self.x_label = tf.placeholder(dtype=tf.float32,
-                                      shape=[args.batch_size, args.tasks_size, args.output_dim])
+                                      shape=[args.batch_size, args.tasks_size, args.output_dim], name="x_label")
         self.y = tf.placeholder(dtype=tf.float32,
-                                shape=[args.batch_size, args.tasks_size, args.output_dim])
+                                shape=[args.batch_size, args.tasks_size, args.output_dim], name="y")
 
         if args.model == 'LSTM':
             def rnn_cell(rnn_size):
@@ -64,33 +64,25 @@ class NTMOneShotLearningModel:
 
             self.o.append(output)
             self.state_list.append(state)
-        self.o = tf.stack(self.o, axis=1)
+        self.o = tf.stack(self.o, axis=1, name="output")
         self.state_list.append(state)
 
-        tf.add_to_collection('pred_network', self.o)
         eps = 1e-8
         self.learning_loss = -tf.reduce_mean(  # cross entropy function
             tf.reduce_sum(self.y * tf.log(self.o + eps), axis=[1, 2])
 
         )
-
-        self.accuracy, self.acc_op = tf.metrics.accuracy(labels=tf.argmax(self.y, 1),
-                                                         predictions=tf.argmax(self.o, 1), name="accuracy")
-        self.recall, self.rec_op = tf.metrics.recall(labels=tf.argmax(self.y, 1),
-                                                     predictions=tf.argmax(self.o, 1))
-        self.precision, self.pre_op = tf.metrics.precision(labels=tf.argmax(self.y, 1),
-                                                           predictions=tf.argmax(self.o, 1), name="precision")
+        self.accuracy, self.acc_op = tf.metrics.accuracy(labels=tf.argmax(self.y, 2),
+                                                         predictions=tf.argmax(self.o, 2), name="accuracy")
+        self.recall, self.rec_op = tf.metrics.recall_at_k(labels=tf.cast(self.y, tf.int64),
+                                                          predictions=self.o, k=100)
+        self.precision, self.pre_op = tf.metrics.precision(labels=tf.argmax(self.y, 2),
+                                                           predictions=tf.argmax(self.o, 2), name="precision")
 
         tf.summary.scalar('learning_loss', self.learning_loss)
         tf.summary.scalar('Accuracy', self.accuracy)
-        tf.summary.scalar('Recall', self.recall)
-        tf.summary.scalar('precision', self.precision)
+        tf.summary.scalar('Recall_k', self.recall)
         self.merged_summary_op = tf.summary.merge_all()
-        tf.summary.scalar('learning_loss', self.learning_loss)
-        self.learning_loss_summary = tf.summary.merge_all()
-        # self.merged_summary = tf.summary.merge(self.learning_loss_summary)
-
-        self.o = tf.reshape(self.o, shape=[args.batch_size, args.tasks_size, -1])
 
         with tf.variable_scope('optimizer'):
             self.optimizer = tf.train.AdamOptimizer(learning_rate=args.learning_rate)
@@ -100,4 +92,4 @@ class NTMOneShotLearningModel:
             # gvs = self.optimizer.compute_gradients(self.learning_loss)
             # capped_gvs = [(tf.clip_by_value(grad, -10., 10.), var) for grad, var in gvs]
             # self.train_op = self.optimizer.apply_gradients(gvs)
-            self.train_op = self.optimizer.minimize(self.learning_loss)
+            self.train_op = self.optimizer.minimize(self.learning_loss, name="train_op")

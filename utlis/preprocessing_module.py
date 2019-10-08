@@ -118,27 +118,28 @@ class preprocessing:
                 while len(x_test) < self.tasks_size:
                     x_test, y_test = self.fetch_batch(test_data)
 
-                seq = np.random.randint(0, len(y_test), self.tasks_size)
+                # choice tasks size item.
+                y_out.append(y_test[-self.tasks_size:])
+                x_out.append(x_test[-self.tasks_size:])
 
-                # random choice tasks size item.
-                y_out.append([y_test[i] for i in seq])
-                x_out.append([x_test[i] for i in seq])
-                x_labels = y_out[-1:] + y_out[:-1]
+            x_labels = np.concatenate(
+                [np.zeros(shape=[self.batch_size, 1, self.length]), np.array(y_out)[:, :-1, :]], axis=1
+            )
         else:
             for i in range(self.batch_size):
                 x, y = self.fetch_batch(test_data)
                 while len(x) < self.tasks_size:
                     x, y = self.fetch_batch(test_data)
 
-                seq = np.random.randint(0, len(y), self.tasks_size)
+                # choice tasks size item.
+                y_out.append(y[-self.tasks_size:])
+                x_out.append(x[-self.tasks_size:])
 
-                # random choice tasks size item.
-                y_out.append([y[i] for i in seq])
-                x_out.append([x[i] for i in seq])
+            x_labels = np.concatenate(
+                [np.zeros(shape=[self.batch_size, 1, self.length]), np.array(y_out)[:, :-1, :]], axis=1
+            )
 
-                x_labels = y_out[-1:]+y_out[:-1]
-
-        return x_out, x_labels, y_out
+        return np.array(x_out), x_labels, np.array(y_out)
 
     def next_batch(self, test_data=False):
         """
@@ -176,7 +177,7 @@ class preprocessing:
         Returns: a batch datasets.
         """
         x, y_shifted, y = self.create_batch(test_data)
-        return np.array(x), np.array(y_shifted), np.array(y)
+        return x, y_shifted, y
 
     def fetch_batch(self, test_data=False):
         """
@@ -233,20 +234,22 @@ class preprocessing:
             self.playlist_number_test = len(self.data)
         else:
             self.file_number += 1
-
-            if self.file_number > len(self.files) - 2:
+            if self.file_number > len(self.files)-2:
                 return None
             else:
                 self.data = np.load(self.files[self.file_number], allow_pickle=True)
                 self.playlist_number = len(self.data)
+                return 0
 
 
 if __name__ == '__main__':
 
     loader = preprocessing()
     loader.init_preprocessing()
+    a=0
     x, x_label, y = loader.next_batch(test_data=False)
     while x is not None:
-        print(0)
+        a+=1
+        print(a)
         x, x_label, y = loader.next_batch(test_data=False)
     print("all files done")
