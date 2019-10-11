@@ -40,7 +40,7 @@ def main():
     parser.add_argument('--seq_length', default=50)
     parser.add_argument('--tasks_size', default=10)
 
-    parser.add_argument('--num_epoches', default=80000)
+    parser.add_argument('--num_epoches', default=5000)
     parser.add_argument('--batch_size', default=8)
     parser.add_argument('--learning_rate', default=5e-4)
     parser.add_argument('--rnn_size', default=128)
@@ -50,7 +50,7 @@ def main():
 
     parser.add_argument('--memory_size', default=512)
     parser.add_argument('--read_head_num', default=4)
-    parser.add_argument('--memory_vector_dim', default=4500)
+    parser.add_argument('--memory_vector_dim', default=1000)
 
     parser.add_argument('--shift_range', default=1, help='Only for model=NTM')
     parser.add_argument('--write_head_num', default=1, help='Only for model=NTM. For MANN #(write_head) = #(read_head)')

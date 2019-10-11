@@ -1,22 +1,7 @@
-#!/usr/bin/python3
-# -*-coding:utf-8 -*-
-
-# Load  .json data into numpy data by playlists track ids. Assign sequences number to indicated each songs.
-# Store the mapping between numbers and songs in dictionary
-# @Time    : 6/28/2019 3:40 PM
-# @Author  : Gaopeng.Bai
-# @File    : dataLoader.py
-# @User    : baigaopeng
-# @Software: PyCharm
-# Reference:**********************************************
-from typing import Optional, Any, Dict, Union
-
 import numpy as np
 import json
 import os
 import time
-
-from numpy.core.multiarray import ndarray
 from six.moves import cPickle
 
 
@@ -36,22 +21,15 @@ def check_duplicated_dict(id2vocab_file):
     return len(d2id) != len(set(d2id.values()))
 
 
+# Load  .json data into numpy data by playlists track ids. Assign sequences number to indicated each songs.
+# Store the mapping between numbers and songs in dictionary
 class dataLoader:
-    count_file: int
-    tensor_file: Union[bytes, str]
-    tensor: ndarray
-    id2word: Dict[int, Any]
-    word2id: Dict[Any, int]
-    vocab: Optional[Any]
-    vocabulary_size: int
-
-    # @test: True. generate only test_n playlists.
+    # @test: True. generate only 10 playlists.
     # @random_number_files: int. The number of .json files in one npy file.
     # @file_number: int.    The number of .json to be generated in total.
     # @ data_dir: the resources files in local data file.
     # @ save_dir: save dir in local save_data dir.
-    def __init__(self, data_dir='../data_resources/data', save_dir='../data_resources/save_data',
-                 test_n=100, test=True, random_number_files=1, file_number=3):
+    def __init__(self, data_dir='data', save_dir='save_data', test=True, random_number_files=1, file_number=3):
         self.save_vocab2id_dir = save_dir + '/' + 'vocab2id'
         self.save_id2vocab_dir = save_dir + '/' + 'id2word'
         self.save_tensor_dir = save_dir + '/' + 'Tensor_numpy'
@@ -67,7 +45,6 @@ class dataLoader:
 
         self.numberOfiles = file_number
         self.test = test
-        self.test_n = test_n
         # all playlist as list stored
         self.data = []
         # all characters as array stored
@@ -143,7 +120,7 @@ class dataLoader:
                 self.files.append(file)
                 for i, name in enumerate(dataStore["playlists"]):
                     if self.test:
-                        if i == self.test_n:
+                        if i == 100:
                             break
                         else:
                             self.playlist += 1

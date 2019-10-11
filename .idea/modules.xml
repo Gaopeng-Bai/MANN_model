@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Master_Thesis.iml" filepath="$PROJECT_DIR$/.idea/Master_Thesis.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../myspotipy/.idea/myspotipy.iml" filepath="$PROJECT_DIR$/../myspotipy/.idea/myspotipy.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../spotify_web_application/.idea/spotify-base.iml" filepath="$PROJECT_DIR$/../spotify_web_application/.idea/spotify-base.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/MANN_Model.iml" filepath="$PROJECT_DIR$/.idea/MANN_Model.iml" />
     </modules>
   </component>
 </project>

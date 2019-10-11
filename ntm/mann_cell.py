@@ -13,7 +13,7 @@ class MANNCell():
         self.reuse = reuse
         # self.controller = tf.nn.rnn_cell.BasicLSTMCell(self.rnn_size)
         self.controller = tf.nn.rnn_cell.MultiRNNCell(
-            [tf.nn.rnn_cell.BasicLSTMCell(self.rnn_size) for _ in range(self.rnn_layers)])
+            [tf.nn.rnn_cell.LSTMCell(self.rnn_size) for _ in range(self.rnn_layers)])
 
         self.step = 0
         self.gamma = gamma
