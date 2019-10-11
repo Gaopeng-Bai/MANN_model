@@ -23,7 +23,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', default="predict", help="train, predict")
 
-    parser.add_argument('--model', default="NTM", help='LSTM, MANN, MANN2 or NTM')
+    parser.add_argument('--model', default="MANN", help='LSTM, MANN, MANN2 or NTM')
 
     parser.add_argument('--restore_training', default=False)
     parser.add_argument('--debug', default=False)
@@ -129,7 +129,8 @@ def train(args):
 def predict(args, x=0):
     with tf.Session() as sess:
         meta = [fn for fn in os.listdir(args.save_dir + '/' + args.model) if fn.endswith('meta')]
-        saver = tf.train.import_meta_graph(args.save_dir + '/' + args.model + meta[0])
+
+        saver = tf.train.import_meta_graph(args.save_dir + '/' + args.model + '/' + meta[0])
         saver.restore(sess, tf.train.latest_checkpoint(args.save_dir + '/' + args.model))
         graph = tf.get_default_graph()
         # input of model
