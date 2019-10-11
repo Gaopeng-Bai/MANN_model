@@ -44,11 +44,11 @@ class NTMOneShotLearningModel:
             cell = mann_cell.MANNCell(args.rnn_size, args.memory_size, args.memory_vector_dim,
                                       head_num=args.read_head_num)
 
-        #if self.x_data.shape.as_list()[0] is not None:
-         #   batch = self.x_data.shape.as_list()[0]
-        #else:
-            #batch = 2
-        #state = cell.zero_state(batch, tf.float32)
+        # if self.x_data.shape.as_list()[0] is not None:
+        #   batch = self.x_data.shape.as_list()[0]
+        # else:
+        # batch = 2
+        # state = cell.zero_state(batch, tf.float32)
         state = cell.zero_state(args.batch_size, tf.float32)
         self.state_list = [state]  # For debugging
         self.o = []
