@@ -21,7 +21,7 @@ def main():
     # deactivate the warnings for "teh tf library wasn't co to use SSE instructions"
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mode', default="train")
+    parser.add_argument('--mode', default="predict", help="train, predict")
 
     parser.add_argument('--model', default="NTM", help='LSTM, MANN, MANN2 or NTM')
 
@@ -59,7 +59,7 @@ def main():
     args = parser.parse_args()
     if args.mode == 'train':
         train(args)
-    elif args.mode == 'test':
+    elif args.mode == 'predict':
         predict(args)
 
 
@@ -126,7 +126,7 @@ def train(args):
                 saver.save(sess, args.save_dir + '/' + args.model + '/model.tfmodel')
 
 
-def predict(args, x):
+def predict(args, x=0):
     with tf.Session() as sess:
         meta = [fn for fn in os.listdir(args.save_dir + '/' + args.model) if fn.endswith('meta')]
         saver = tf.train.import_meta_graph(args.save_dir + '/' + args.model + meta[0])
