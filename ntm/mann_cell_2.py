@@ -7,7 +7,7 @@ class MANNCell():
         self.memory_size = memory_size
         self.memory_vector_dim = memory_vector_dim
         self.head_num = head_num                                    # #(read head) == #(write head)
-        self.controller = tf.nn.rnn_cell.BasicLSTMCell(self.rnn_size)
+        self.controller = tf.nn.rnn_cell.LSTMCell(self.rnn_size)
         self.step = 0
         self.gamma = gamma
         self.k_strategy = k_strategy
