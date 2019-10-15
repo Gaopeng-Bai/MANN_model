@@ -21,7 +21,7 @@ def main():
     # deactivate the warnings for "teh tf library wasn't co to use SSE instructions"
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mode', default="train")
+    parser.add_argument('--mode', default="predict", help='train, predict')
 
     parser.add_argument('--model', default="NTM", help='LSTM, MANN, MANN2 or NTM')
 
