@@ -127,7 +127,14 @@ def train(args):
 
 
 def predict(args, x):
+    # model = NTMOneShotLearningModel(args)
+    # init = (tf.global_variables_initializer(), tf.local_variables_initializer())
+
     with tf.Session() as sess:
+        # sess.run(init)
+        # saver = tf.train.Saver()
+        # saver.restore(sess, tf.train.latest_checkpoint(args.save_dir + '/' + args.model))
+
         meta = [fn for fn in os.listdir(args.save_dir + '/' + args.model) if fn.endswith('meta')]
         saver = tf.train.import_meta_graph(args.save_dir + '/' + args.model + meta[0])
         saver.restore(sess, tf.train.latest_checkpoint(args.save_dir + '/' + args.model))
