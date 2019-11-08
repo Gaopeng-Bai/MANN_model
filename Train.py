@@ -23,7 +23,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', default="predict", help="train, predict")
 
-    parser.add_argument('--model', default="MANN", help='LSTM, MANN, MANN2 or NTM')
+    parser.add_argument('--model', default="MANN", help='LSTM, MANN, or NTM')
 
     parser.add_argument('--restore_training', default=False)
     parser.add_argument('--debug', default=False)
