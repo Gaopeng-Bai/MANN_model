@@ -88,7 +88,7 @@ class NTMCell:
             w = tf.expand_dims(write_w_list[i], axis=2)
             erase_vector = tf.expand_dims(tf.sigmoid(erase_add_list[i * 2]), axis=1)
             add_vector = tf.expand_dims(tf.tanh(erase_add_list[i * 2 + 1]), axis=1)
-            M = M * (tf.ones(M.get_shape()) - tf.matmul(w, erase_vector)) + tf.matmul(w, add_vector)
+            M = M * (tf.ones(M.get_shape()) - tf.compat.v2.matmul(w, erase_vector)) + tf.compat.v2.matmul(w, add_vector)
 
         # controller_output -> NTM output
 
@@ -121,7 +121,7 @@ class NTMCell:
         # Cosine Similarity
 
         k = tf.expand_dims(k, axis=2)
-        inner_product = tf.matmul(prev_M, k)
+        inner_product = tf.compat.v2.matmul(prev_M, k)
         k_norm = tf.sqrt(tf.reduce_sum(tf.square(k), axis=1, keepdims=True))
         M_norm = tf.sqrt(tf.reduce_sum(tf.square(prev_M), axis=2, keepdims=True))
         norm_product = M_norm * k_norm

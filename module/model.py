@@ -39,10 +39,6 @@ class NTMOneShotLearningModel:
             cell = mann_cell.MANNCell(rnn_size=args.rnn_size, memory_size=args.memory_size,
                                       memory_vector_dim=args.memory_vector_dim,
                                       head_num=args.read_head_num, rnn_layers=args.rnn_num_layers)
-        elif args.model == 'MANN2':
-            import ntm.mann_cell_2 as mann_cell
-            cell = mann_cell.MANNCell(args.rnn_size, args.memory_size, args.memory_vector_dim,
-                                      head_num=args.read_head_num)
 
         # if self.x_data.shape.as_list()[0] is not None:
         #   batch = self.x_data.shape.as_list()[0]

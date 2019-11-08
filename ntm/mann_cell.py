@@ -83,19 +83,19 @@ class MANNCell():
         # Writing
 
         M = M_
-        with tf.variable_scope('writing'): #eq (8)
+        with tf.variable_scope('writing'):  # eq (8)
             for i in range(self.head_num):
                 w = tf.expand_dims(w_w_list[i], axis=2)
                 if self.k_strategy == 'summary':
                     k = tf.expand_dims(k_list[i], axis=1)
                 elif self.k_strategy == 'separate':
                     k = tf.expand_dims(a_list[i], axis=1)
-                M = M + tf.matmul(w, k)
+                M = M + tf.compat.v2.matmul(w, k)
 
         # Reading
 
         read_vector_list = []
-        with tf.variable_scope('reading'):  #eq (4)
+        with tf.variable_scope('reading'):  # eq (4)
             for i in range(self.head_num):
                 read_vector = tf.reduce_sum(tf.expand_dims(w_r_list[i], axis=2) * M, axis=1)
                 read_vector_list.append(read_vector)
@@ -116,12 +116,13 @@ class MANNCell():
         self.step += 1
         return NTM_output, state
 
-    def read_head_addressing(self, k, prev_M):
+    @staticmethod
+    def read_head_addressing(k, prev_M):
         with tf.variable_scope('read_head_addressing'):
             # Cosine Similarity
 
             k = tf.expand_dims(k, axis=2)
-            inner_product = tf.matmul(prev_M, k)
+            inner_product = tf.compat.v2.matmul(prev_M, k)
             k_norm = tf.sqrt(tf.reduce_sum(tf.square(k), axis=1, keepdims=True))
             M_norm = tf.sqrt(tf.reduce_sum(tf.square(prev_M), axis=2, keepdims=True))
             norm_product = M_norm * k_norm
@@ -134,7 +135,8 @@ class MANNCell():
 
             return w
 
-    def write_head_addressing(self, sig_alpha, prev_w_r, prev_w_lu):
+    @staticmethod
+    def write_head_addressing(sig_alpha, prev_w_r, prev_w_lu):
         with tf.variable_scope('write_head_addressing'):
             # Write to (1) the place that was read in t-1 (2) the place that was least used in t-1
 
