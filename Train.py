@@ -39,7 +39,7 @@ def main():
     parser.add_argument('--output_dim', default=9575)
     parser.add_argument('--seq_length', default=50)
 
-    parser.add_argument('--num_epoches', default=1000)
+    parser.add_argument('--num_epoches', default=80000)
     parser.add_argument('--batch_size', default=32)
     parser.add_argument('--learning_rate', default=5e-6)
     parser.add_argument('--rnn_size', default=128)
