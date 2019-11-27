@@ -23,7 +23,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', default="train", help="train, predict")
 
-    parser.add_argument('--model', default="MANN", help='LSTM, MANN, or NTM')
+    parser.add_argument('--model', default="LSTM", help='LSTM, MANN, or NTM')
 
     parser.add_argument('--restore_training', default=False)
     parser.add_argument('--debug', default=False)
@@ -40,14 +40,14 @@ def main():
     parser.add_argument('--seq_length', default=50)
 
     parser.add_argument('--num_epoches', default=80000)
-    parser.add_argument('--batch_size', default=32)
-    parser.add_argument('--learning_rate', default=5e-6)
+    parser.add_argument('--batch_size', default=64)
+    parser.add_argument('--learning_rate', default=1e-6)
     parser.add_argument('--rnn_size', default=128)
     parser.add_argument('--rnn_num_layers', default=1)
     parser.add_argument('--output_keep_prob', default=0.75,
                         help='probability of keeping weights in the hidden layer')
 
-    parser.add_argument('--memory_size', default=215)
+    parser.add_argument('--memory_size', default=128)
     parser.add_argument('--read_head_num', default=4)
     parser.add_argument('--memory_vector_dim', default=500)
 

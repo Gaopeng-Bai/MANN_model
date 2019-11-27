@@ -113,9 +113,9 @@ class preprocessing:
         y_out = []
         x_out = []
         if test_data:
-            if len(self.test_x_container) < self.batch_size:
+            if len(self.test_x_container) < self.batch_size*2:
                 x_test, y_test = self.fetch_batch(test_data)
-                while len(x_test) < self.batch_size:
+                while len(x_test) < self.batch_size*2:
                     x_test, y_test = self.fetch_batch(test_data)
                 self.test_x_container = np.array(x_test)
                 self.test_y_container = np.array(y_test)
@@ -123,16 +123,16 @@ class preprocessing:
             x_out = self.test_x_container[0:self.batch_size, :]
             y_out = self.test_y_container[0:self.batch_size, :]
             for j in range(self.batch_size):
-                np.delete(self.test_x_container, j, 0)
-                np.delete(self.test_y_container, j, 0)
+                self.test_x_container = np.delete(self.test_x_container, j, 0)
+                self.test_y_container = np.delete(self.test_y_container, j, 0)
 
             x_labels = np.concatenate(
                 [np.zeros(shape=[self.batch_size, 1]), np.array(y_out)[:, :-1]], axis=1
             )
         else:
-            if len(self.x_container) < self.batch_size:
+            if len(self.x_container) < self.batch_size*2:
                 x, y = self.fetch_batch(test_data)
-                while len(x) < self.batch_size:
+                while len(x) < self.batch_size*2:
                     x, y = self.fetch_batch(test_data)
                 self.x_container = np.array(x)
                 self.y_container = np.array(y)
@@ -140,8 +140,8 @@ class preprocessing:
             x_out = self.x_container[0:self.batch_size, :]
             y_out = self.y_container[0:self.batch_size, :]
             for j in range(self.batch_size):
-                np.delete(self.x_container, j, 0)
-                np.delete(self.y_container, j, 0)
+                self.x_container = np.delete(self.x_container, j, 0)
+                self.y_container = np.delete(self.y_container, j, 0)
 
             x_labels = np.concatenate(
                 [np.zeros(shape=[self.batch_size, 1]), np.array(y_out)[:, :-1]], axis=1
