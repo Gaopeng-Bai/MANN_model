@@ -56,12 +56,12 @@ class preprocessing:
     # noinspection PyCompatibility
     file_number: int
 
-    def __init__(self, tasks_size=16, batch_size=8, length=10810, test=True,
-                 numpy_dir="../../data_resources/save_data/Tensor_numpy", seq_length=50):
-        self.tasks_size = tasks_size
+    def __init__(self,  batch_size=8, length=9575, test=True,
+                 numpy_dir="../../data_resources/save_data/Tensor_numpy", seq_length=3):
         self.files = []
         self.batch_size = batch_size
-
+        self.x_container = []
+        self.test_x_container = []
         self.seq = seq_length
         self.length = length
         self.test = test
@@ -113,33 +113,41 @@ class preprocessing:
         y_out = []
         x_out = []
         if test_data:
-            for i in range(self.batch_size):
+            if len(self.test_x_container) < self.batch_size:
                 x_test, y_test = self.fetch_batch(test_data)
-                while len(x_test) < self.tasks_size:
+                while len(x_test) < self.batch_size:
                     x_test, y_test = self.fetch_batch(test_data)
+                self.test_x_container = np.array(x_test)
+                self.test_y_container = np.array(y_test)
 
-                # choice tasks size item.
-                y_out.append(y_test[-self.tasks_size:])
-                x_out.append(x_test[-self.tasks_size:])
+            x_out = self.test_x_container[0:self.batch_size, :]
+            y_out = self.test_y_container[0:self.batch_size, :]
+            for j in range(self.batch_size):
+                np.delete(self.test_x_container, j, 0)
+                np.delete(self.test_y_container, j, 0)
 
             x_labels = np.concatenate(
-                [np.zeros(shape=[self.batch_size, 1, self.length]), np.array(y_out)[:, :-1, :]], axis=1
+                [np.zeros(shape=[self.batch_size, 1]), np.array(y_out)[:, :-1]], axis=1
             )
         else:
-            for i in range(self.batch_size):
+            if len(self.x_container) < self.batch_size:
                 x, y = self.fetch_batch(test_data)
-                while len(x) < self.tasks_size:
+                while len(x) < self.batch_size:
                     x, y = self.fetch_batch(test_data)
+                self.x_container = np.array(x)
+                self.y_container = np.array(y)
 
-                # choice tasks size item.
-                y_out.append(y[-self.tasks_size:])
-                x_out.append(x[-self.tasks_size:])
+            x_out = self.x_container[0:self.batch_size, :]
+            y_out = self.y_container[0:self.batch_size, :]
+            for j in range(self.batch_size):
+                np.delete(self.x_container, j, 0)
+                np.delete(self.y_container, j, 0)
 
             x_labels = np.concatenate(
-                [np.zeros(shape=[self.batch_size, 1, self.length]), np.array(y_out)[:, :-1, :]], axis=1
+                [np.zeros(shape=[self.batch_size, 1]), np.array(y_out)[:, :-1]], axis=1
             )
 
-        return np.array(x_out), x_labels, np.array(y_out)
+        return x_out, x_labels, y_out
 
     def next_batch(self, test_data=False):
         """
@@ -213,11 +221,10 @@ class preprocessing:
             else:
                 x.append(temp_list)
                 while len(x[0]) < self.seq:
-                    x[0].append(-1)
+                    x[0].append(0)
                 x_array = np.insert(x_array, len(x_array), np.array(x[0]), axis=0)
 
             y_output.append(one_hot_encode(int(y * self.length), self.length))
-
         return x_array[1:, :].tolist(), y_output
 
     def read_file(self, test_data=False):

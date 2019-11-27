@@ -21,7 +21,7 @@ def main():
     # deactivate the warnings for "teh tf library wasn't co to use SSE instructions"
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
     parser = argparse.ArgumentParser()
-    parser.add_argument('--mode', default="predict", help="train, predict")
+    parser.add_argument('--mode', default="train", help="train, predict")
 
     parser.add_argument('--model', default="MANN", help='LSTM, MANN, or NTM')
 
@@ -36,21 +36,20 @@ def main():
 
     parser.add_argument('--number_files', default=10, help="For dataLoader, the number of files read once")
 
-    parser.add_argument('--output_dim', default=10810)
+    parser.add_argument('--output_dim', default=9575)
     parser.add_argument('--seq_length', default=50)
-    parser.add_argument('--tasks_size', default=10)
 
-    parser.add_argument('--num_epoches', default=5000)
-    parser.add_argument('--batch_size', default=8)
-    parser.add_argument('--learning_rate', default=5e-4)
+    parser.add_argument('--num_epoches', default=1000)
+    parser.add_argument('--batch_size', default=32)
+    parser.add_argument('--learning_rate', default=5e-6)
     parser.add_argument('--rnn_size', default=128)
     parser.add_argument('--rnn_num_layers', default=1)
-    parser.add_argument('--output_keep_prob', default=1.0,
+    parser.add_argument('--output_keep_prob', default=0.75,
                         help='probability of keeping weights in the hidden layer')
 
-    parser.add_argument('--memory_size', default=512)
+    parser.add_argument('--memory_size', default=215)
     parser.add_argument('--read_head_num', default=4)
-    parser.add_argument('--memory_vector_dim', default=1000)
+    parser.add_argument('--memory_vector_dim', default=500)
 
     parser.add_argument('--shift_range', default=1, help='Only for model=NTM')
     parser.add_argument('--write_head_num', default=1, help='Only for model=NTM. For MANN #(write_head) = #(read_head)')
@@ -66,7 +65,7 @@ def main():
 def train(args):
     model = NTMOneShotLearningModel(args)
 
-    data_loader = pre(batch_size=args.batch_size, length=args.output_dim, tasks_size=args.tasks_size, numpy_dir=args.numpy_dir,
+    data_loader = pre(batch_size=args.batch_size, length=args.output_dim, numpy_dir=args.numpy_dir,
                       seq_length=args.seq_length)
 
     if not os.path.exists(args.save_dir):
@@ -75,7 +74,14 @@ def train(args):
         os.makedirs(args.tensorboard_dir)
 
     init = (tf.global_variables_initializer(), tf.local_variables_initializer())
-    with tf.Session() as sess:
+    # gpu configuration
+    config = tf.ConfigProto(allow_soft_placement=True)
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.7)
+
+    # Start will not give Tensorflow all gpu resources or increase as needed
+    config.gpu_options.allow_growth = True
+
+    with tf.Session(config=config) as sess:
         if args.debug:
             sess.run(init)
             sess = tf_debug.LocalCLIDebugWrapperSession(sess)
@@ -99,8 +105,8 @@ def train(args):
                 if number_test % 10 == 0:
                     x, x_label, y = data_loader.next_batch(test_data=True)
                     feed_dict = {model.x_data: x, model.x_label: x_label, model.y: y}
-                    learning_loss, accuracy, recall, precision, _ = sess.run(
-                        [model.learning_loss, model.accuracy, model.recall, model.precision, model.train_op], feed_dict=feed_dict)
+                    learning_loss, accuracy, recall, precision = sess.run(
+                        [model.learning_loss, model.accuracy, model.recall, model.precision], feed_dict=feed_dict)
 
                     acc_op, recall_op, pre_op, merged_summary = sess.run(
                         [model.acc_op, model.rec_op, model.pre_op, model.merged_summary_op], feed_dict=feed_dict)
@@ -129,20 +135,19 @@ def train(args):
 def predict(args, x=0):
     with tf.Session() as sess:
         meta = [fn for fn in os.listdir(args.save_dir + '/' + args.model) if fn.endswith('meta')]
-
         saver = tf.train.import_meta_graph(args.save_dir + '/' + args.model + '/' + meta[0])
         saver.restore(sess, tf.train.latest_checkpoint(args.save_dir + '/' + args.model))
         graph = tf.get_default_graph()
         # input of model
-        input_x = graph.get_operation_by_name('x_squences').outputs[0]
-        input_x_label = graph.get_operation_by_name('x_label').outputs[0]
-        # prediction
-        prediction = graph.get_operation_by_name('output').outputs[0]
-        # for retraining
-        train_y = graph.get_operation_by_name('y').outputs[0]
-        train_op = graph.get_operation_by_name('train_op').outputs[0]
-
-        sp_predict = sess.run(prediction, feed_dict={input_x: x})
+        # input_x = graph.get_operation_by_name('x_squences').outputs[0]
+        # input_x_label = graph.get_operation_by_name('x_label').outputs[0]
+        # # prediction
+        # prediction = graph.get_operation_by_name('output').outputs[0]
+        # # for retraining
+        # train_y = graph.get_operation_by_name('y').outputs[0]
+        # train_op = graph.get_operation_by_name('train_op').outputs[0]
+        #
+        # sp_predict = sess.run(prediction, feed_dict={input_x: x})
 
 
 if __name__ == '__main__':

@@ -90,7 +90,7 @@ class MANNCell():
                     k = tf.expand_dims(k_list[i], axis=1)
                 elif self.k_strategy == 'separate':
                     k = tf.expand_dims(a_list[i], axis=1)
-                M = M + tf.compat.v2.matmul(w, k)
+                M = M + tf.matmul(w, k)
 
         # Reading
 
@@ -122,7 +122,7 @@ class MANNCell():
             # Cosine Similarity
 
             k = tf.expand_dims(k, axis=2)
-            inner_product = tf.compat.v2.matmul(prev_M, k)
+            inner_product = tf.matmul(prev_M, k)
             k_norm = tf.sqrt(tf.reduce_sum(tf.square(k), axis=1, keepdims=True))
             M_norm = tf.sqrt(tf.reduce_sum(tf.square(prev_M), axis=2, keepdims=True))
             norm_product = M_norm * k_norm

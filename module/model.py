@@ -16,11 +16,11 @@ class NTMOneShotLearningModel:
     def __init__(self, args):
 
         self.x_data = tf.placeholder(dtype=tf.float32,
-                                     shape=[args.batch_size, args.tasks_size, args.seq_length], name="x_squences")
+                                     shape=[args.batch_size, args.seq_length], name="x_squences")
         self.x_label = tf.placeholder(dtype=tf.float32,
-                                      shape=[args.batch_size, args.tasks_size, args.output_dim], name="x_label")
+                                      shape=[args.batch_size, args.output_dim], name="x_label")
         self.y = tf.placeholder(dtype=tf.float32,
-                                shape=[args.batch_size, args.tasks_size, args.output_dim], name="y")
+                                shape=[args.batch_size, args.output_dim], name="y")
 
         if args.model == 'LSTM':
             def rnn_cell(rnn_size):
@@ -40,45 +40,36 @@ class NTMOneShotLearningModel:
                                       memory_vector_dim=args.memory_vector_dim,
                                       head_num=args.read_head_num, rnn_layers=args.rnn_num_layers)
 
-        # if self.x_data.shape.as_list()[0] is not None:
-        #   batch = self.x_data.shape.as_list()[0]
-        # else:
-        # batch = 2
-        # state = cell.zero_state(batch, tf.float32)
         state = cell.zero_state(args.batch_size, tf.float32)
         self.state_list = [state]  # For debugging
-        self.o = []
-        for t in range(args.tasks_size):
-            b = tf.concat([self.x_data[:, t, :], self.x_label[:, t, :]], axis=1)
-            output, state = cell(b, state)
-            # output, state = cell(self.y[:, t, :], state)
-            with tf.variable_scope("o2o", reuse=(t > 0)):
-                o2o_w = tf.get_variable('o2o_w', [output.get_shape()[1], args.output_dim],
-                                        initializer=tf.random_uniform_initializer(minval=-0.1, maxval=0.1))
-                # initializer=tf.random_normal_initializer(mean=0.0, stddev=0.1))
-                o2o_b = tf.get_variable('o2o_b', [args.output_dim],
-                                        initializer=tf.random_uniform_initializer(minval=-0.1, maxval=0.1))
-                # initializer=tf.random_normal_initializer(mean=0.0, stddev=0.1))
-                output = tf.nn.xw_plus_b(output, o2o_w, o2o_b)
+        # self.o = []
+        b = tf.concat([self.x_data[:, :], self.x_label[:, :]], axis=1)
+        output, state = cell(b, state)
+        with tf.variable_scope("o2o", reuse=tf.AUTO_REUSE):
+            o2o_w = tf.get_variable('o2o_w', [output.get_shape()[1], args.output_dim],
+                                    initializer=tf.random_uniform_initializer(minval=-0.1, maxval=0.1))
+            # initializer=tf.random_normal_initializer(mean=0.0, stddev=0.1))
+            o2o_b = tf.get_variable('o2o_b', [args.output_dim],
+                                    initializer=tf.random_uniform_initializer(minval=-0.1, maxval=0.1))
+            # initializer=tf.random_normal_initializer(mean=0.0, stddev=0.1))
+            output = tf.nn.xw_plus_b(output, o2o_w, o2o_b)
 
-            output = tf.nn.softmax(output, axis=1)
+        output = tf.nn.softmax(output)
 
-            self.o.append(output)
-            self.state_list.append(state)
-        self.o = tf.stack(self.o, axis=1, name="output")
+        # self.o.append(output)
         self.state_list.append(state)
+        self.o = tf.squeeze(output)
 
         eps = 1e-8
         self.learning_loss = -tf.reduce_mean(  # cross entropy function
-            tf.reduce_sum(self.y * tf.log(self.o + eps), axis=[1, 2])
-
+            tf.reduce_sum(self.y * tf.log(self.o + eps), axis=[1])
         )
-        self.accuracy, self.acc_op = tf.metrics.accuracy(labels=tf.argmax(self.y, 2),
-                                                         predictions=tf.argmax(self.o, 2), name="accuracy")
+        self.accuracy, self.acc_op = tf.metrics.accuracy(labels=tf.argmax(self.y, 1),
+                                                         predictions=tf.argmax(self.o, 1), name="accuracy")
         self.recall, self.rec_op = tf.metrics.recall_at_k(labels=tf.cast(self.y, tf.int64),
                                                           predictions=self.o, k=100)
-        self.precision, self.pre_op = tf.metrics.precision(labels=tf.argmax(self.y, 2),
-                                                           predictions=tf.argmax(self.o, 2), name="precision")
+        self.precision, self.pre_op = tf.metrics.precision(labels=tf.argmax(self.y, 1),
+                                                           predictions=tf.argmax(self.o, 1), name="precision")
 
         tf.summary.scalar('learning_loss', self.learning_loss)
         tf.summary.scalar('Accuracy', self.accuracy)
