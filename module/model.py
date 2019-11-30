@@ -53,7 +53,7 @@ class NTMOneShotLearningModel:
 
         output = tf.nn.softmax(output)
         self.state_list.append(state)
-        self.o = tf.squeeze(output)
+        self.o = tf.squeeze(output, name="output")
 
         eps = 1e-8
         self.learning_loss = -tf.reduce_mean(  # cross entropy function
