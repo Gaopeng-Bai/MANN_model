@@ -7,7 +7,7 @@
 # @File    : model.py
 # @User    : baigaopeng
 # @Software: PyCharm
-# Reference:**********************************************
+# Reference:https://github.com/Gaopeng-Bai/MANN_model.git
 
 import tensorflow as tf
 
@@ -42,21 +42,16 @@ class NTMOneShotLearningModel:
 
         state = cell.zero_state(args.batch_size, tf.float32)
         self.state_list = [state]  # For debugging
-        # self.o = []
         b = tf.concat([self.x_data[:, :], self.x_label[:, :]], axis=1)
         output, state = cell(b, state)
         with tf.variable_scope("o2o", reuse=tf.AUTO_REUSE):
             o2o_w = tf.get_variable('o2o_w', [output.get_shape()[1], args.output_dim],
                                     initializer=tf.random_uniform_initializer(minval=-0.1, maxval=0.1))
-            # initializer=tf.random_normal_initializer(mean=0.0, stddev=0.1))
             o2o_b = tf.get_variable('o2o_b', [args.output_dim],
                                     initializer=tf.random_uniform_initializer(minval=-0.1, maxval=0.1))
-            # initializer=tf.random_normal_initializer(mean=0.0, stddev=0.1))
             output = tf.nn.xw_plus_b(output, o2o_w, o2o_b)
 
         output = tf.nn.softmax(output)
-
-        # self.o.append(output)
         self.state_list.append(state)
         self.o = tf.squeeze(output)
 
@@ -74,6 +69,7 @@ class NTMOneShotLearningModel:
         tf.summary.scalar('learning_loss', self.learning_loss)
         tf.summary.scalar('Accuracy', self.accuracy)
         tf.summary.scalar('Recall_k', self.recall)
+        tf.summary.scalar('precision', self.precision)
         self.merged_summary_op = tf.summary.merge_all()
 
         with tf.variable_scope('optimizer'):

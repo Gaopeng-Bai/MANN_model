@@ -7,7 +7,7 @@
 # @File    : preprocessing_module.py
 # @User    : baigaopeng
 # @Software: PyCharm
-# Reference:**********************************************
+# Reference:https://github.com/Gaopeng-Bai/MANN_model.git
 
 import os
 from typing import Any, Union, Iterable
@@ -33,15 +33,6 @@ def one_hot_decode(x):
     return np.argmax(x, axis=-1)
 
 
-def reconver_list(seq, list):
-    new = []
-    recover = math.ceil(((seq - len(list)) / len(list)))
-    for i in range(recover + 1):
-        new.append(list)
-
-    return np.array(new).reshape([-1])[:seq]
-
-
 class preprocessing:
     # noinspection PyCompatibility
     x_array: ndarray
@@ -56,7 +47,7 @@ class preprocessing:
     # noinspection PyCompatibility
     file_number: int
 
-    def __init__(self,  batch_size=8, length=9575, test=True,
+    def __init__(self,  batch_size=10, length=14130, test=True,
                  numpy_dir="../../data_resources/save_data/Tensor_numpy", seq_length=3):
         self.files = []
         self.batch_size = batch_size
@@ -78,6 +69,7 @@ class preprocessing:
         if len(self.files) >= 1:
             self.test_data = np.load(self.files[(len(self.files) - 1)], allow_pickle=True)
             self.playlist_number_test = len(self.test_data)
+            self.playlist_number_test -= 1
 
     def temp_seq_length(self):
         a = []
@@ -101,14 +93,12 @@ class preprocessing:
 
     def create_batch(self, test_data=False):
         """
-        Create a batch from batch table with batch size and tasks size represent a playlist.
-        a batch(1-dim) represent a playlist rebuild no.(task size(2-dim)) of item.
-        each item extend the length of seq length(3-dim).
-        add second data that shift y label one bit to left.
+        Create a batch from batch table with batch size.
+        first dim is batch size, second is sequence of item.
         Args:
             test_data: fetch next test batch when True,
                        fetch next train batch when False.
-        Returns: x_out, y_out as a batch with 2-dim(task size).
+        Returns: x_out, x_labels, y_out as one batch. x_labels is the previous target.
         """
         y_out = []
         x_out = []
@@ -130,7 +120,7 @@ class preprocessing:
                 [np.zeros(shape=[self.batch_size, 1]), np.array(y_out)[:, :-1]], axis=1
             )
         else:
-            if len(self.x_container) < self.batch_size*2:
+            if len(self.x_container) <= self.batch_size*2:
                 x, y = self.fetch_batch(test_data)
                 while len(x) < self.batch_size*2:
                     x, y = self.fetch_batch(test_data)
@@ -139,6 +129,7 @@ class preprocessing:
 
             x_out = self.x_container[0:self.batch_size, :]
             y_out = self.y_container[0:self.batch_size, :]
+
             for j in range(self.batch_size):
                 self.x_container = np.delete(self.x_container, j, 0)
                 self.y_container = np.delete(self.y_container, j, 0)
@@ -158,15 +149,17 @@ class preprocessing:
         Returns: a test or training data batch.
         """
         if test_data:
-            if self.playlist_number_test >= self.batch_size:
+            # one file not finished yet
+            if self.playlist_number_test >= 1:
                 x, x_label, y = self.assign_to_final(test_data)
                 return x, x_label, y
             else:
+                # read next file
                 self.read_file(test_data)
                 x, x_label, y = self.assign_to_final(test_data)
                 return x, x_label, y
         else:
-            if self.playlist_number >= self.batch_size:
+            if self.playlist_number >= 1:
                 x, x_label, y = self.assign_to_final(test_data)
                 return x, x_label, y
             else:
@@ -197,16 +190,14 @@ class preprocessing:
         y_output = []
         x_array = np.arange(self.seq, dtype=float).reshape(1, self.seq)
         if test_data:
-            self.playlist_number_test -= 1
             playlist = self.test_data[self.playlist_number_test]
+            while not any(playlist):
+               self.playlist_number_test -= 1
+               playlist = self.test_data[self.playlist_number_test]
+            self.playlist_number_test -= 1
         else:
             self.playlist_number -= 1
             playlist = self.data[self.playlist_number]
-
-        # remove None in playlists
-        if self.test:
-            while None in playlist:
-                playlist.remove(None)
 
         playlist = self.normalization(playlist)
 
@@ -221,7 +212,7 @@ class preprocessing:
             else:
                 x.append(temp_list)
                 while len(x[0]) < self.seq:
-                    x[0].append(0)
+                    x[0].append(-1)
                 x_array = np.insert(x_array, len(x_array), np.array(x[0]), axis=0)
 
             y_output.append(one_hot_encode(int(y * self.length), self.length))
@@ -254,9 +245,9 @@ if __name__ == '__main__':
     loader = preprocessing()
     loader.init_preprocessing()
     a=0
-    x, x_label, y = loader.next_batch(test_data=False)
+    x, x_label, y = loader.next_batch(test_data=True)
     while x is not None:
         a+=1
-        print(a)
-        x, x_label, y = loader.next_batch(test_data=False)
+
+        x, x_label, y = loader.next_batch(test_data=True)
     print("all files done")

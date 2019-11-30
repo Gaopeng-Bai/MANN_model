@@ -1,3 +1,14 @@
+#!/usr/bin/python3
+# -*-coding:utf-8 -*-
+
+# load data from original data resource (.json files) into numpy file.
+# @Time    : 6/28/2019 3:40 PM
+# @Author  : Gaopeng.Bai
+# @File    : model.py
+# @User    : baigaopeng
+# @Software: PyCharm
+# Reference:https://github.com/Gaopeng-Bai/MANN_model.git
+
 import numpy as np
 import json
 import os
@@ -22,15 +33,16 @@ def check_duplicated_dict(id2vocab_file):
 
 
 # Load  .json data into numpy data by playlists track ids. Assign sequences number to indicated each songs.
-# Store the mapping between numbers and songs in dictionary
+# Store the mapping between numbers and songs in dictionary. Generate the song sequence by natural numbers.
 class dataLoader:
     # @test: True. generate only 10 playlists.
     # @random_number_files: int. The number of .json files in one npy file.
-    # @file_number: int.    The number of .json to be generated in total.
+    # @file_number: int.    The number of .json to be generated in total. The last one file take as test sets
+    # and only take elements that exist in training set (Remaining files) otherwise, set 0 by default.
     # @ data_dir: the resources files in local data file.
     # @ save_dir: save dir in local save_data dir.
     def __init__(self, data_dir='../data_resources/data', save_dir='../data_resources/save_data',
-                 test=True, random_number_files=1, file_number=2):
+                 test=True, random_number_files=1, file_number=3):
         self.save_vocab2id_dir = save_dir + '/' + 'vocab2id'
         self.save_id2vocab_dir = save_dir + '/' + 'id2word'
         self.save_tensor_dir = save_dir + '/' + 'Tensor_numpy'
@@ -65,6 +77,12 @@ class dataLoader:
         self.read_file_to_store(self.file_name, self.random_number_files)
 
     def read_file_to_store(self, data, random_number_files=1):
+        """
+        read data form files. save numpy file and the mapping dictionary into local.
+        :param data: all paths of files
+        :param random_number_files: the number of files will be random choose to convert into one numpy file
+        :return:
+        """
         self.count_file = 0
 
         if not os.path.isdir(self.save_vocab2id_dir):
@@ -99,7 +117,11 @@ class dataLoader:
                 if self.count_file >= random_number_files:
                     # print(self.dataValue)
                     self.count_file = 0
-                    self.dictionary_update(self.dataArray, self.id2vocab_file, self.vocab2id_file, self.tensor_file)
+                    if i >= 1:
+                        self.dictionary_update(self.dataArray, self.id2vocab_file, self.vocab2id_file, self.tensor_file, is_test=False)
+                    else:
+                        self.dictionary_update(self.dataArray, self.id2vocab_file, self.vocab2id_file, self.tensor_file, is_test=True)
+
                     self.dataArray = np.arange(0)
                     self.data.clear()
                     self.playlist = -1
@@ -109,8 +131,13 @@ class dataLoader:
                             f.write(str(val))
                             f.write('\n')
 
-    # read json files from self_filename that stored all files name
     def read_json_file(self, Filename, file):
+        """
+        read json files.
+        :param Filename: file path.
+        :param file: Serial number of the file
+        :return: The data array only include songs track url without prefix "spotify:track:".
+        """
         with Filename as f:
             try:
                 dataStore = json.load(f, strict=False)
@@ -137,29 +164,15 @@ class dataLoader:
 
                 return np.array(self.data)
 
-    # convert all data what already had into string to extract dictionary.
-    def to_str(self, Array):
-        # convert array to string for dictionary_update
-        for L in Array:
-            for value in L:
-                self.char_form = self.char_form + ''.join(value)
-            self.char_form = self.char_form + '\n'
-
-        return self.char_form
-
-    def check_all_file_size(self, dirR):
-        for dir, subdir, filename in os.walk(dirR):
-            if filename:
-                for file in filename:
-                    path = self.save_vocab2id_dir + '/' + file
-                    size = get_File_size(path)
-                    if size < 60:
-                        return file
-            else:
-                return 0
-
-    def dictionary_update(self, dataArray, id2vocab_file, vocab_file, tensor_file):
-
+    def dictionary_update(self, dataArray, id2vocab_file, vocab_file, tensor_file, is_test=False):
+        """
+        assigned natural number to each item in dataArray. save the mapping dictionary into local.
+        :param dataArray: the array of playlist.
+        :param id2vocab_file: path to be save
+        :param vocab_file: path to be save
+        :param tensor_file: path to be save
+        :param is_test: variable for test set.
+        """
         if not os.path.exists(vocab_file):
             self.word2id = dict()
             self.vocabulary_size = -1
@@ -168,12 +181,17 @@ class dataLoader:
                 self.vocab = cPickle.load(f)
             self.vocabulary_size = len(self.vocab)
             self.word2id = dict(zip(self.vocab.keys(), self.vocab.values()))
+        new_dataArray = []
         for p in dataArray:
             for word in p:
                 # if not in dictionary, store index idCount+1
                 if self.word2id.get(word) is None:
-                    self.vocabulary_size += 1
-                    self.word2id[word] = self.vocabulary_size
+                    if is_test:
+                       self.word2id[word] = 0
+                    else:
+                        self.vocabulary_size += 1
+                        self.word2id[word] = self.vocabulary_size
+
         # put char into dictionary random sort
         self.word2id = dict(zip(self.word2id.keys(), self.word2id.values()))
         self.id2word = dict(zip(self.word2id.values(), self.word2id.keys()))

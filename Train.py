@@ -7,7 +7,7 @@
 # @File    : Train.py
 # @User    : baigaopeng
 # @Software: PyCharm
-# Reference:**********************************************
+# Github:https://github.com/Gaopeng-Bai/MANN_model.git
 
 import argparse
 import os
@@ -23,10 +23,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', default="train", help="train, predict")
 
-    parser.add_argument('--model', default="LSTM", help='LSTM, MANN, or NTM')
+    parser.add_argument('--model', default="MANN", help='LSTM, MANN, or NTM')
 
     parser.add_argument('--restore_training', default=False)
-    parser.add_argument('--debug', default=False)
     parser.add_argument('--training', default=True)
 
     parser.add_argument('--save_dir', default="../data_resources/save_data")
@@ -36,18 +35,18 @@ def main():
 
     parser.add_argument('--number_files', default=10, help="For dataLoader, the number of files read once")
 
-    parser.add_argument('--output_dim', default=9575)
+    parser.add_argument('--output_dim', default=14130)
     parser.add_argument('--seq_length', default=50)
 
     parser.add_argument('--num_epoches', default=80000)
-    parser.add_argument('--batch_size', default=64)
-    parser.add_argument('--learning_rate', default=1e-6)
+    parser.add_argument('--batch_size', default=32)
+    parser.add_argument('--learning_rate', default=1e-4)
     parser.add_argument('--rnn_size', default=128)
     parser.add_argument('--rnn_num_layers', default=1)
     parser.add_argument('--output_keep_prob', default=0.75,
                         help='probability of keeping weights in the hidden layer')
 
-    parser.add_argument('--memory_size', default=128)
+    parser.add_argument('--memory_size', default=215)
     parser.add_argument('--read_head_num', default=4)
     parser.add_argument('--memory_vector_dim', default=500)
 
@@ -82,9 +81,6 @@ def train(args):
     config.gpu_options.allow_growth = True
 
     with tf.Session(config=config) as sess:
-        if args.debug:
-            sess.run(init)
-            sess = tf_debug.LocalCLIDebugWrapperSession(sess)
         if args.restore_training:
             sess.run(init)
             saver = tf.train.Saver()
@@ -138,16 +134,17 @@ def predict(args, x=0):
         saver = tf.train.import_meta_graph(args.save_dir + '/' + args.model + '/' + meta[0])
         saver.restore(sess, tf.train.latest_checkpoint(args.save_dir + '/' + args.model))
         graph = tf.get_default_graph()
-        # input of model
-        # input_x = graph.get_operation_by_name('x_squences').outputs[0]
-        # input_x_label = graph.get_operation_by_name('x_label').outputs[0]
+        # # input of model
+        input_x = graph.get_operation_by_name('x_squences').outputs[0]
+        input_x_label = graph.get_operation_by_name('x_label').outputs[0]
         # # prediction
-        # prediction = graph.get_operation_by_name('output').outputs[0]
+        prediction = graph.get_operation_by_name('output').outputs[0]
         # # for retraining
-        # train_y = graph.get_operation_by_name('y').outputs[0]
-        # train_op = graph.get_operation_by_name('train_op').outputs[0]
-        #
-        # sp_predict = sess.run(prediction, feed_dict={input_x: x})
+        train_y = graph.get_operation_by_name('y').outputs[0]
+        # predict
+        # sp_predict = sess.run(prediction, feed_dict={input_x: x, input_x_label: x_label})[0][0]
+        # _, predict_number = tf.nn.top_k(sp_predict, k=100)
+        # a = sess.run(predict_number)
 
 
 if __name__ == '__main__':
